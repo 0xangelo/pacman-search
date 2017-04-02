@@ -1,7 +1,7 @@
 AI search agents intro
 =============
 
-A python implementation of search algorithms in python
+A python implementation of search algorithms
 
 Part of the free UC Berkeley CS188
 

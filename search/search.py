@@ -166,19 +166,36 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     start = problem.getStartState()
     visited = set()
     priority_queue = util.PriorityQueue()
+    came_from = {}
+    g_cost = {}
 
-    priority_queue.push((start, []), 0)
+    def path(state, came_from):
+        list = []
+        start = problem.getStartState()
+
+        while state != start:
+            (state, action) = came_from[state]
+            list.insert(0, action)
+            
+        return list
+    
+    priority_queue.push(start, heuristic(start, problem))
+    g_cost[start] = 0
 
     while not priority_queue.isEmpty():
-        (state, path) = priority_queue.pop()
+        state = priority_queue.pop()
+                        
         if problem.isGoalState(state):
-            return path
-        else:
-            visited.add(state)
-            for (next_state, action, stepCost) in problem.getSuccessors(state):
-                if next_state not in visited:
-                    priority_queue.update((next_state, path + [action]), stepCost)
+            return path(state, came_from)
 
+        visited.add(state)
+        for (next_state, action, stepCost) in problem.getSuccessors(state):
+            if next_state not in visited:
+                came_from[next_state] = ((state),[action])
+                g_cost[next_state] = g_cost[state] + stepCost
+                priority_queue.update(next_state, heuristic(next_state, problem) + g_cost[next_state])
+                
+                
 
 def learningRealTimeAStar(problem, heuristic=nullHeuristic):
     """Execute a number of trials of LRTA* and return the best plan found."""

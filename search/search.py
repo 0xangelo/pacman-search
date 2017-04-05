@@ -117,18 +117,32 @@ def breadthFirstSearch(problem):
     start = problem.getStartState()
     visited = set()
     queue = util.Queue()
+    came_from = {}
 
-    queue.push((start, []))
+    def path(state, came_from):
+        directions = []
+        start = problem.getStartState()
+
+        while state != start:
+            (state, action) = came_from[state]
+            directions.insert(0, action)
+            
+        return directions
+
+    visited.add(start)
+    queue.push(start)
 
     while not queue.isEmpty():
-        (state, path) = queue.pop()
+        state = queue.pop()
+        
         if problem.isGoalState(state):
-            return path
-        else:
-            visited.add(state)
-            for (next_state, action, stepCost) in problem.getSuccessors(state):
-                if next_state not in visited:
-                    queue.push((next_state, path + [action]))
+            return path(state, came_from)
+
+        for (next_state, action, stepCost) in problem.getSuccessors(state):
+            if next_state not in visited:
+                visited.add(next_state)
+                came_from[next_state] = (state, action)
+                queue.push(next_state)
     
     
 
@@ -138,18 +152,40 @@ def uniformCostSearch(problem):
     start = problem.getStartState()
     visited = set()
     priority_queue = util.PriorityQueue()
+    came_from = {}
+    g_cost= {}
 
-    priority_queue.push((start, []), 0)
+    def path(state, came_from):
+        directions = []
+        start = problem.getStartState()
+
+        while state != start:
+            (state, action) = came_from[state]
+            directions.insert(0, action)
+            
+        return directions
+
+    visited.add(start)
+    g_cost[start] = 0
+    priority_queue.push(start, g_cost[start])
 
     while not priority_queue.isEmpty():
-        (state, path) = priority_queue.pop()
+        state = priority_queue.pop()
         if problem.isGoalState(state):
-            return path
-        else:
-            visited.add(state)
-            for (next_state, action, stepCost) in problem.getSuccessors(state):
-                if next_state not in visited:
-                    priority_queue.update((next_state, path + [action]), stepCost)
+            return path(state, came_from)
+        
+        for (next_state, action, stepCost) in problem.getSuccessors(state):
+            if next_state not in visited:
+                visited.add(next_state)
+                g_cost[next_state] = g_cost[state] + stepCost
+                came_from[next_state] = (state, action)
+                priority_queue.push(next_state, g_cost[next_state])
+                
+            elif g_cost[next_state] > g_cost[state] + stepCost:
+                g_cost[next_state] = g_cost[state] + stepCost
+                came_from[next_state] = (state, action)
+                priority_queue.update(next_state, g_cost[next_state])
+                
 
 
 def nullHeuristic(state, problem=None):
@@ -170,17 +206,18 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     g_cost = {}
 
     def path(state, came_from):
-        list = []
+        directions = []
         start = problem.getStartState()
 
         while state != start:
             (state, action) = came_from[state]
-            list.insert(0, action)
+            directions.insert(0, action)
             
-        return list
-    
-    priority_queue.push(start, heuristic(start, problem))
+        return directions
+
+    visited.add(start)
     g_cost[start] = 0
+    priority_queue.push(start, heuristic(start, problem))
 
     while not priority_queue.isEmpty():
         state = priority_queue.pop()
@@ -188,10 +225,15 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         if problem.isGoalState(state):
             return path(state, came_from)
 
-        visited.add(state)
         for (next_state, action, stepCost) in problem.getSuccessors(state):
             if next_state not in visited:
-                came_from[next_state] = ((state),[action])
+                visited.add(next_state)
+                came_from[next_state] = (state, action)
+                g_cost[next_state] = g_cost[state] + stepCost
+                priority_queue.push(next_state, heuristic(next_state, problem) + g_cost[next_state])
+                
+            elif g_cost[next_state] > g_cost[state] + stepCost:
+                came_from[next_state] = (state, action)
                 g_cost[next_state] = g_cost[state] + stepCost
                 priority_queue.update(next_state, heuristic(next_state, problem) + g_cost[next_state])
                 

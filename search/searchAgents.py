@@ -301,8 +301,6 @@ class CornersProblem(search.SearchProblem):
         node = state[0]
         visitedCorners = state[1]
         if node in self.corners:
-            if not node in visitedCorners:
-                visitedCorners.append(node)
             return len(visitedCorners) == 4
         return False
 
@@ -321,17 +319,16 @@ class CornersProblem(search.SearchProblem):
 
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
-            hitsWall = self.walls[nextx][nexty]
-            if not hitsWall:
-                successorVisitedCorners = list(visitedCorners)
-                next_node = (nextx, nexty)
-                if next_node in self.corners:
-                    if not next_node in successorVisitedCorners:
-                        successorVisitedCorners.append( next_node )
-                successor = ((next_node, successorVisitedCorners), action, 1)
+            
+            if not self.walls[nextx][nexty]:
+                new_visitedCorners = list(visitedCorners)
+                next_state = (nextx, nexty)
+                if next_state in self.corners:
+                    if next_state not in new_visitedCorners:
+                        new_visitedCorners.append( next_state )
+                successor = ((next_state, new_visitedCorners), action, 1)
                 successors.append(successor)
 
         self._expanded += 1
